@@ -1067,6 +1067,7 @@ export const MoonlightApp = {
      * Best-effort throughout: a failed status read leaves the page bannerless.
      */
     async _mountHostsBanners() {
+        if (isMacvmForward()) return; // This owner reaches the Mac by SSH and shares invitations through the guest gateway.
         const info = await this._computeRemoteAccessUrls();
         if (!info) return;
 

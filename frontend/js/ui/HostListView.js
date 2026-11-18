@@ -26,6 +26,7 @@
  * The online/offline badge sits next to the host name; "Remove" lives in a
  * per-host "…" menu.
  */
+import { isMacvmForward } from '../api/MacvmForward.js';
 import { BackendClient } from '../api/BackendClient.js';
 import { shortGpuNames } from '../util/gpuName.js';
 import { Host } from '../models/Host.js';
@@ -1090,6 +1091,15 @@ export class HostListView {
         }
     }
 
+    _macPermissionAction(pane) {
+        if (BackendClient.adminLocked) return '';
+        const attrs = `class="btn btn-secondary btn-mac-perm" data-pane="${pane}"`;
+        if (isMacvmForward())
+            return `<a ${attrs} href="http://127.0.0.1:18990/" target="_blank" rel="noopener noreferrer">${t('hosts.openMacConsole')}</a>`;
+        const label = pane === 'screen' ? 'setup.openScreenRecording' : 'setup.openAccessibility';
+        return `<button ${attrs}>${t(label)}</button>`;
+    }
+
     renderCard(host) {
         const cls = host.statusClass;
         // Booth mode leaves the menu one entry, Stop session, and hides it
@@ -1224,11 +1234,7 @@ export class HostListView {
             // one that vanished would say nothing at all.
             return `<div class="host-body-center host-empty-display">
                         <p class="host-empty-display-text">${t('hosts.nativeCapturePermission')}</p>
-                        ${
-                            BackendClient.adminLocked
-                                ? ''
-                                : `<button class="btn btn-secondary btn-mac-perm" data-pane="screen">${t('setup.openScreenRecording')}</button>`
-                        }
+                        ${this._macPermissionAction('screen')}
                     </div>`;
         }
         if (host.isOnline && host.certificateChanged) {
@@ -1241,11 +1247,7 @@ export class HostListView {
             // lost Accessibility still streams, but takes no input: said above
             // the grid, since macOS says nothing.
             const inputWarn = host.lacksInputPermission
-                ? `<div class="host-perm-warn"><p>${t('hosts.nativeInputPermission')}</p>${
-                      BackendClient.adminLocked
-                          ? ''
-                          : `<button class="btn btn-secondary btn-mac-perm" data-pane="accessibility">${t('setup.openAccessibility')}</button>`
-                  }</div>`
+                ? `<div class="host-perm-warn"><p>${t('hosts.nativeInputPermission')}</p>${this._macPermissionAction('accessibility')}</div>`
                 : '';
             return inputWarn + `<div class="host-apps" data-uuid="${host.uuid}"></div>`;
         }

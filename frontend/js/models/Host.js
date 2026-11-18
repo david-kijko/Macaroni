@@ -193,6 +193,8 @@ export class Host {
         if (this.isUnavailable) return t('hosts.statusUnavailable');
         if (!this.isOnline) return t('hosts.statusOffline');
         if (this.certificateChanged) return t('hosts.statusCertificateChanged');
+        if (this.needsCapturePermission) return t('hosts.statusCaptureBlocked');
+        if (this.isPaired && this.lacksInputPermission) return t('hosts.statusViewOnly');
         if (this.isPaired) return t('hosts.statusReady');
         return t('hosts.statusNotPaired');
     }
@@ -202,6 +204,8 @@ export class Host {
         if (this.isUnavailable) return 'unavailable';
         if (!this.isOnline) return 'offline';
         if (this.certificateChanged) return 'locked';
+        if (this.needsCapturePermission || (this.isPaired && this.lacksInputPermission))
+            return 'locked';
         if (this.isPaired) return 'ready';
         return 'locked';
     }
@@ -211,6 +215,8 @@ export class Host {
         if (this.isUnavailable) return Icons.unavailable; // reachable, service down
         if (!this.isOnline) return Icons.power; // power off
         if (this.certificateChanged) return Icons.lock; // nothing goes to it
+        if (this.needsCapturePermission) return Icons.lock;
+        if (this.isPaired && this.lacksInputPermission) return Icons.monitor;
         if (this.isPaired) return Icons.check; // checkmark
         return Icons.lock; // lock
     }

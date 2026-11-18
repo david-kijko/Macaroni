@@ -62,6 +62,8 @@ describe('a Mac host that lost a privacy grant', () => {
         expect(card.querySelector('.host-empty-display-text').textContent).toBe(
             'hosts.nativeCapturePermission',
         );
+        expect(card.querySelector('.status-badge').textContent).toBe('hosts.statusCaptureBlocked');
+        expect(card.querySelector('.status-badge.ready')).toBeNull();
         expect(card.querySelector('.btn-mac-perm').dataset.pane).toBe('screen');
         expect(card.querySelector('.host-apps')).toBeNull();
         expect(BackendClient.getAppList).not.toHaveBeenCalled();
@@ -72,12 +74,14 @@ describe('a Mac host that lost a privacy grant', () => {
         expect(card.querySelector('.host-perm-warn p').textContent).toBe(
             'hosts.nativeInputPermission',
         );
+        expect(card.querySelector('.status-badge').textContent).toBe('hosts.statusViewOnly');
         expect(card.querySelector('.btn-mac-perm').dataset.pane).toBe('accessibility');
         expect(card.querySelector('.host-apps')).not.toBeNull();
     });
 
     it('both grants present: an ordinary card', () => {
         const card = mount(mac({ state: 'ok', input_permission: true }));
+        expect(card.querySelector('.status-badge').textContent).toBe('hosts.statusReady');
         expect(card.querySelector('.host-perm-warn')).toBeNull();
         expect(card.querySelector('.btn-mac-perm')).toBeNull();
     });
