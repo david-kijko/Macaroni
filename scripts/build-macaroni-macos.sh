@@ -14,7 +14,7 @@ cmake --build "$build" --target mw-server --parallel "${BUILD_JOBS:-4}"
 
 app="$build/Macaroni.app"
 resources="$app/Contents/Resources"
-mkdir -p "$resources" "$app/Contents/MacOS"
+mkdir -p "$resources/frontend" "$app/Contents/MacOS"
 install -m 755 "$build/MoonlightWeb" "$app/Contents/MacOS/Macaroni"
 for item in assets css js locales index.html manifest.webmanifest; do
     ditto "$root/frontend/$item" "$resources/frontend/$item"

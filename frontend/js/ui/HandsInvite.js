@@ -58,6 +58,7 @@ export function guestLanding(container, invite) {
 export class HandsInvite {
     constructor(ctx) {
         this.ctx = ctx;
+        this.onClose = null;
         this.state = {};
         this.busy = false;
     }

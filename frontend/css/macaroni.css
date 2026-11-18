@@ -344,3 +344,24 @@ dialog.macaroni-room::backdrop {
 .room-body:has(.room-control[hidden]) {
     grid-template-rows: auto auto minmax(0, 1fr) auto auto;
 }
+body:has(.guest-welcome) {
+    background: #1b1916;
+    color: #f4eadc;
+    font:
+        16px Figtree,
+        system-ui,
+        sans-serif;
+    display: grid;
+    min-height: 95dvh;
+    place-items: center;
+    text-align: center;
+}
+.guest-welcome {
+    padding: 20px;
+}
+.guest-welcome h1 {
+    font:
+        400 32px Caprasimo,
+        Georgia,
+        serif;
+}

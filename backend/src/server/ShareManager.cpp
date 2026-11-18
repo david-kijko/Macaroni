@@ -621,6 +621,8 @@ void ShareManager::setStreaming(int slot, bool streaming)
     if (s->activation.streaming == streaming) return;
 
     s->activation.streaming = streaming;
+    if (!streaming && s->activation.roomGuest && s->activation.permissions.keyboardMouse)
+        setPermissions(slot, {});
     // A stream that drops — tab closed, ICE dead, host hiccup — leaves the
     // activation alive on purpose: only an owner action or the TTL ends a share.
     // Nothing freezes here any more: the policy follows the owner's board for

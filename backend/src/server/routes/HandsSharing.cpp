@@ -4,6 +4,8 @@
 #include "server/RestRouter.h"
 
 #include <QDateTime>
+#include <QFile>
+#include <QStandardPaths>
 #include <QJsonArray>
 #include <QUrl>
 #include <algorithm>
@@ -136,8 +138,21 @@ void registerHandsSharing(HttpServer& server, ShareManager& share, const ShareRo
                             {"requested", it->requests.contains(it->openings.value(slot))}});
         }
         QString origin = qEnvironmentVariable("MACARONI_GUEST_ORIGIN");
+        if (origin.isEmpty()) {
+            QFile setting(QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) +
+                          QStringLiteral("/Macaroni/guest-origin"));
+            if (setting.open(QIODevice::ReadOnly))
+                origin = QString::fromUtf8(setting.read(1024)).trimmed();
+        }
         if (origin.isEmpty() && !server.domain().isEmpty())
             origin = QStringLiteral("https://") + server.domain();
+        if (!origin.isEmpty()) {
+            const QUrl supplied(origin);
+            if (!supplied.isValid() || supplied.scheme() != "https" || supplied.host().isEmpty() ||
+                !supplied.userInfo().isEmpty() || supplied.hasFragment() || supplied.hasQuery() ||
+                (!supplied.path().isEmpty() && supplied.path() != "/"))
+                origin.clear();
+        }
         return HttpResponse::json({{"active", true},
                                    {"invitation", it->secret},
                                    {"expires", it->expires},
@@ -203,6 +218,25 @@ void registerHandsSharing(HttpServer& server, ShareManager& share, const ShareRo
                                    {"holding", share.permissions(slot).keyboardMouse},
                                    {"pending", it->requests.contains(opening)},
                                    {"others", others}});
+    });
+    server.router()->post("/api/share/player/depart", [=, &share, &deps](const HttpRequest& req) {
+        sweep();
+        const auto body = QJsonDocument::fromJson(req.body).object();
+        const int slot = share.slotForToken(body.value("token").toString());
+        if (!share.isRoomGuest(slot) || share.slotForCookie(HttpServer::cookieFromRequest(
+                                            req, ShareManager::kPlayerCookie)) != slot)
+            return HttpResponse::error(403, "Invitation expired.");
+        auto room = invites->find(share.hostForSlot(slot));
+        if (room == invites->end() || !room->openings.contains(slot))
+            return HttpResponse::error(403, "Room ended.");
+        room->requests.remove(room->openings.take(slot));
+        share.setPermissions(slot, {});
+        if (deps.stopPlayerStream) deps.stopPlayerStream(slot, true);
+        share.deactivate(slot, ShareManager::EndReason::OwnerToggle);
+        auto response = HttpResponse::json({{"left", true}});
+        response.headers["Set-Cookie"] =
+            QStringLiteral("mw_player=; HttpOnly; Secure; Path=/; SameSite=Strict; Max-Age=0");
+        return response;
     });
     server.router()->post("/api/share/player/claim", [=, &share](const HttpRequest& req) {
         sweep();

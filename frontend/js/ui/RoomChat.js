@@ -122,7 +122,7 @@ export function openRoom(context) {
             return false;
         }
     }
-    const controls = doc.querySelector('.room-control');
+    const controls = /** @type {HTMLElement} */ (doc.querySelector('.room-control'));
     const take = /** @type {HTMLButtonElement} */ (controls.querySelector('button'));
     const transfer = controls.querySelector('select');
     const controlStatus = controls.querySelector('span');

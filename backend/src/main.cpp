@@ -6427,7 +6427,8 @@ int main(int argc, char* argv[])
     // that matches THAT slot's live activation opens them — the session-cookie
     // check the owner's slots go through would reject every player.
     server.setPlayerSlotAuthorizer([&shareManager](const HttpRequest& req, int slot) {
-        return shareManager.slotForCookie(
+        return shareManager.appForSlot(slot) != ShareManager::kChatOnlyApp &&
+               shareManager.slotForCookie(
                    HttpServer::cookieFromRequest(req, QStringLiteral("mw_player"))) == slot;
     });
 

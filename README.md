@@ -42,13 +42,15 @@ Open **Share** in the Mac host card menu or while streaming. Select a display/ap
 - **Room chat** works in the guest lobby and during a stream. Messages and the participant list update while chat is open. The host keeps up to 80 messages per room in memory. A new participant sees messages sent during their invitation slot’s lifetime.
 - **Guests can control** starts off. The owner can use a participant’s **Manage** menu to grant, transfer or revoke keyboard and mouse control. Turning guest requests off takes control back. The permission change reaches the stream worker without making the guest reconnect.
 - With guest requests enabled, **Request control** gives the guest an unoccupied desktop or registers a request when someone holds it. The current guest controller can release control or hand it to another participant. Chat-only invitations never authorize desktop input or streaming.
-- **Remove** disconnects that guest session. Anyone who still holds an active invitation can rejoin. **End sharing** revokes the link and all guest sessions for that room. Restarting the host also invalidates these invitations.
+- **Leave room** frees the guest’s place. The owner can use **Remove** to disconnect a guest. Anyone who still holds an active invitation can rejoin. **End sharing** revokes the link and all guest sessions for that room. Restarting the host also invalidates these invitations.
 
 ### Where the link works
 
-Open the host on a **guest-reachable HTTPS origin** for a second computer to join. Use the Mac’s LAN or private VPN address with a certificate the guest trusts, or a deployment reachable by both browsers. The host can set `MACARONI_GUEST_ORIGIN` to its guest HTTPS origin before launch. A local-only SSH forward or a loopback link works on its own machine. The invitation does not create a public tunnel. For desktop sharing across networks, the guest also needs a working WebRTC media path.
+Open the host on a **guest-reachable HTTPS origin** for a second computer to join. Use the Mac’s LAN or private VPN address with a certificate the guest trusts, or a deployment reachable by both browsers. The host can set `MACARONI_GUEST_ORIGIN` before launch or write the guest HTTPS origin to `~/Library/Application Support/Macaroni/guest-origin`. A local-only SSH forward or a loopback link works on its own machine. The invitation does not create a public tunnel. For an SSH-only Mac, use the [guest-only HTTPS gateway](deploy/guest/README.md). For desktop sharing across networks, the guest also needs a working WebRTC media path.
 
 Keep admin and guest access distinct when deploying a reverse proxy. The native host treats loopback as a trusted owner connection. A public proxy forwarding unrestricted traffic to that listener would grant its callers that trust. The development VM used a private SSH forward for the owner.
+
+<img src="docs/screenshots/macaroni/room-chat.png" alt="Macaroni room chat with Avery, Morgan and the host" width="300">
 
 ## Source map
 

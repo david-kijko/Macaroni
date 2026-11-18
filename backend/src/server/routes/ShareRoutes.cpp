@@ -600,6 +600,7 @@ void registerShareRoutes(HttpServer& server, ShareManager& share, const ShareRou
         }
 
         const ShareManager::Permissions perms = share.permissions(slot);
+        obj["room_guest"] = share.isRoomGuest(slot);
         obj["chat_only"] = share.appForSlot(slot) == ShareManager::kChatOnlyApp;
         obj[QStringLiteral("needs_pin")] = false;
         obj[QStringLiteral("machine_name")] = deps.machineName ? deps.machineName() : QString();

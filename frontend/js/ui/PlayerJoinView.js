@@ -377,12 +377,32 @@ export class PlayerJoinView {
         });
     }
 
+    _wireRoomExit() {
+        if (!this.info.room_guest) return;
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'btn btn-secondary player-exit';
+        button.textContent = 'Leave room';
+        this.container.querySelector('.player-chat').after(button);
+        button.onclick = async () => {
+            button.disabled = true;
+            try {
+                await BackendClient.post('/api/share/player/depart', { token: this.token });
+                this._shell('<h1>You left the room</h1>');
+            } catch {
+                await this.refresh();
+            }
+        };
+    }
     _renderJoin() {
         if (this.info.chat_only) {
             this._shell(
                 '<h1>Chat invitation</h1><button class="btn btn-open player-chat" type="button">Join room chat</button>',
             );
-            const join = this.container.querySelector('.player-chat');
+            this._wireRoomExit();
+            const join = /** @type {HTMLButtonElement} */ (
+                this.container.querySelector('.player-chat')
+            );
             join.addEventListener('click', () => openRoom({ token: this.token }));
             if (!this._chatOpened) {
                 this._chatOpened = true;
@@ -458,7 +478,10 @@ export class PlayerJoinView {
             }
         `);
 
-        const chat = this.container.querySelector('.player-chat');
+        this._wireRoomExit();
+        const chat = /** @type {HTMLButtonElement} */ (
+            this.container.querySelector('.player-chat')
+        );
         chat.addEventListener('click', () => openRoom({ token: this.token }));
         if (!this._chatOpened && new URLSearchParams(location.search).get('room') === 'chat') {
             this._chatOpened = true;
