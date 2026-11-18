@@ -587,7 +587,7 @@ jobs:
         run: |
           cmake --install build --prefix stage --component app
           mkdir -p AppDir/usr/bin
-          cp "build/$APP" build/moonlightweb-launch AppDir/usr/bin/
+          cp "build/$APP" build/moonlightweb-launch build/moonlightweb-kms AppDir/usr/bin/
           cp -r stage/frontend AppDir/usr/bin/frontend
           # The DEV edition wears the blue icon (scripts/make-dev-icons.py).
           icon=frontend/assets/icon-512.png
@@ -1010,13 +1010,60 @@ jobs:
           OUT="$PWD/${{ needs.setup.outputs.pkg }}-${{ needs.setup.outputs.version }}-macos-arm64.pkg" \
             bash backend/installer/macos/build-pkg.sh
 
+      # Attached to the release by macos-publish below, once it has installed.
       - uses: actions/upload-artifact@v6
         with:
           name: ${{ needs.setup.outputs.pkg }}-macos-arm64-${{ needs.setup.outputs.label }}
           path: ${{ needs.setup.outputs.pkg }}-${{ needs.setup.outputs.version }}-macos-arm64.pkg
 
+  # ── macOS .pkg, installed ────────────────────────────────────────────────
+  # The package the job above built, installed on a fresh runner by its
+  # logged-in user, five times over, and what its postinstall leaves checked
+  # each time: its log, the files in the user's home and whose they are, the
+  # installer pane's hand-off, provisioning.json. test-pkg.sh lists the five
+  # installs. The runner's sudo asks for no password, and no install asks for
+  # Internet Access. The job reads the repository and nothing more, and keeps
+  # no token in the checkout, since the package's own scripts and app run here.
+  macos-pkg-check:
+    needs: [setup, macos]
+    if: ${{ needs.setup.outputs.macos == 'true' }}
+    name: Install the macOS .pkg
+    runs-on: macos-15
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: backend/installer/macos
+          persist-credentials: false
+
+      - uses: actions/download-artifact@v6
+        with:
+          name: ${{ needs.setup.outputs.pkg }}-macos-arm64-${{ needs.setup.outputs.label }}
+
+      - name: Install it, and check what its postinstall leaves
+        run: |
+          bash backend/installer/macos/test-pkg.sh \
+            "${{ needs.setup.outputs.pkg }}-${{ needs.setup.outputs.version }}-macos-arm64.pkg" \
+            ${{ needs.setup.outputs.edition }}
+
+  # ── macOS .pkg, published ────────────────────────────────────────────────
+  # On a v* tag, the file the macos job built is attached to the release, and
+  # only once macos-pkg-check has installed it and every check held.
+  macos-publish:
+    needs: [setup, macos-pkg-check]
+    if: ${{ startsWith(github.ref, 'refs/tags/') && needs.setup.outputs.macos == 'true' }}
+    name: Publish the macOS .pkg
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v6
+        with:
+          name: ${{ needs.setup.outputs.pkg }}-macos-arm64-${{ needs.setup.outputs.label }}
+
       - uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
-        if: startsWith(github.ref, 'refs/tags/')
         with:
           files: ${{ needs.setup.outputs.pkg }}-${{ needs.setup.outputs.version }}-macos-arm64.pkg
 
@@ -1032,7 +1079,7 @@ jobs:
   # not exist for the untagged 0.3.0.gb7c-dev builds. Skipped, loudly, when
   # HOMEBREW_TAP_TOKEN is unset — same posture as the SignPath steps above.
   homebrew:
-    needs: [setup, macos]
+    needs: [setup, macos-publish]
     if: ${{ startsWith(github.ref, 'refs/tags/') }}
     name: Publish Homebrew cask
     runs-on: ubuntu-latest
@@ -1052,9 +1099,9 @@ jobs:
             echo "::warning title=Homebrew cask not published::HOMEBREW_TAP_TOKEN is unset - the tap still points at the previous version."
           fi
 
-      # The cask pins a sha256, so it has to be computed from the exact file the
-      # macos job just published — not re-downloaded from the release, which may
-      # not be visible yet when this runs.
+      # The cask pins a sha256, so it has to be computed from the exact file
+      # macos-publish just attached — not re-downloaded from the release, which
+      # may not be visible yet when this runs.
       - name: Download the released .pkg
         if: steps.tap.outputs.enabled == 'true'
         uses: actions/download-artifact@v6
