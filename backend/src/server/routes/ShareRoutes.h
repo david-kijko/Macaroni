@@ -143,3 +143,6 @@ struct ShareRoutesDeps
 /// Register the share API. A no-op when ShareManager::kSessionSharingEnabled is
 /// false, which is exactly what makes the feature vanish (unknown route → 404).
 void registerShareRoutes(HttpServer& server, ShareManager& share, const ShareRoutesDeps& deps);
+
+void registerHandsSharing(HttpServer& server, ShareManager& share, const ShareRoutesDeps& deps);
+void registerRoomChat(HttpServer& server, ShareManager& share, const ShareRoutesDeps& deps);

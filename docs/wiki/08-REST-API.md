@@ -188,3 +188,10 @@ Anything not matching `/api/*` or a WS upgrade is served by `StaticFileHandler` 
 ---
 
 [← Settings Reference](07-Settings-Reference.md) · [Home](Home.md) · [Next: Installers & Packaging →](09-Installers-and-Packaging.md)
+
+
+## Macaroni room endpoints
+
+The owner uses `POST /api/share/room` with a host and an action. Status reports the active invitation, expiry, participants, pending requests and who holds control. Open selects the app or chat-only target. Allow sets the guest request switch. Control and remove take the participant slot and its opening ID, so a stale action cannot affect someone subsequently assigned the same slot. End revokes the room.
+
+Guests use `POST /api/share/player/claim` to exchange their invitation and name for a bound guest cookie. Chat and control calls use both the per-device token and that cookie. `POST /api/share/player/control` supports status, request, release and handoff to another participant. `POST /api/share/player/chat` exchanges plain-text room messages. For the owner the chat endpoint is `POST /api/share/chat`.

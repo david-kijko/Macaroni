@@ -136,10 +136,12 @@ void registerShareRoutes(HttpServer& server, ShareManager& share, const ShareRou
         return;
     }
 
+    registerRoomChat(server, share, deps);
     RestRouter* router = server.router();
 
     // The board's proofs that it is the browser its session was paired with
     // (OwnerProof). One store for every route, copied into each closure.
+    registerHandsSharing(server, share, deps);
     auto proofs = std::make_shared<OwnerProof>();
 
     // Asked of every request that hands out a guest's way in: nullopt when it
@@ -364,6 +366,7 @@ void registerShareRoutes(HttpServer& server, ShareManager& share, const ShareRou
                  [&share, &deps, fillLink, ownerRefusal](const HttpRequest& req) {
                      const int slot = slotParam(req);
                      if (slot < 0) return HttpResponse::error(404, "Unknown player slot");
+                     if (share.isRoomGuest(slot)) return HttpResponse::error(403, "Use the room owner controls.");
 
                      const QJsonObject body = QJsonDocument::fromJson(req.body).object();
                      if (auto refused = ownerRefusal(req, body, QStringLiteral("activate"), slot))
@@ -382,7 +385,7 @@ void registerShareRoutes(HttpServer& server, ShareManager& share, const ShareRou
                              : std::pair<QString, int>{};
                      QString hostUuid = owner.first;
                      int appId = owner.second;
-                     if (hostUuid.isEmpty()) {
+                     if (hostUuid.isEmpty() || body.value("app_id").toInt(-1) == ShareManager::kChatOnlyApp) {
                          hostUuid = wantedHost;
                          appId = body.value(QStringLiteral("app_id")).toInt(-1);
                          if (hostUuid.isEmpty())
@@ -419,6 +422,7 @@ void registerShareRoutes(HttpServer& server, ShareManager& share, const ShareRou
                  [&share, fillLink, ownerRefusal](const HttpRequest& req) {
                      const int slot = slotParam(req);
                      if (slot < 0) return HttpResponse::error(404, "Unknown player slot");
+                     if (share.isRoomGuest(slot)) return HttpResponse::error(403, "Use the room owner controls.");
                      if (auto refused =
                              ownerRefusal(req, QJsonDocument::fromJson(req.body).object(),
                                           QStringLiteral("credentials"), slot))
@@ -452,6 +456,7 @@ void registerShareRoutes(HttpServer& server, ShareManager& share, const ShareRou
                                                                         const HttpRequest& req) {
         const int slot = slotParam(req);
         if (slot < 0) return HttpResponse::error(404, "Unknown player slot");
+        if (share.isRoomGuest(slot)) return HttpResponse::error(403, "Use the room owner controls.");
 
         const QJsonObject body = QJsonDocument::fromJson(req.body).object();
         if (auto refused = ownerRefusal(req, body, QStringLiteral("permissions"), slot))
@@ -468,6 +473,7 @@ void registerShareRoutes(HttpServer& server, ShareManager& share, const ShareRou
     router->post(QStringLiteral("/api/share/slots/:n/ttl"), [&share](const HttpRequest& req) {
         const int slot = slotParam(req);
         if (slot < 0) return HttpResponse::error(404, "Unknown player slot");
+        if (share.isRoomGuest(slot)) return HttpResponse::error(403, "Use the room owner controls.");
 
         const QJsonObject body = QJsonDocument::fromJson(req.body).object();
         const qint64 ttl = static_cast<qint64>(body.value(QStringLiteral("ttl_secs")).toDouble(-1));
@@ -479,6 +485,7 @@ void registerShareRoutes(HttpServer& server, ShareManager& share, const ShareRou
     router->post(QStringLiteral("/api/share/slots/:n/name"), [&share](const HttpRequest& req) {
         const int slot = slotParam(req);
         if (slot < 0) return HttpResponse::error(404, "Unknown player slot");
+        if (share.isRoomGuest(slot)) return HttpResponse::error(403, "Use the room owner controls.");
 
         const QJsonObject body = QJsonDocument::fromJson(req.body).object();
         if (!share.setName(slot, body.value(QStringLiteral("name")).toString()))
@@ -491,6 +498,7 @@ void registerShareRoutes(HttpServer& server, ShareManager& share, const ShareRou
         QStringLiteral("/api/share/slots/:n/deactivate"), [&share, &deps](const HttpRequest& req) {
             const int slot = slotParam(req);
             if (slot < 0) return HttpResponse::error(404, "Unknown player slot");
+            if (share.isRoomGuest(slot)) return HttpResponse::error(403, "Use the room owner controls.");
 
             // Kill the worker first, then the credentials: the player
             // must not be able to rejoin between the two.
@@ -592,6 +600,7 @@ void registerShareRoutes(HttpServer& server, ShareManager& share, const ShareRou
         }
 
         const ShareManager::Permissions perms = share.permissions(slot);
+        obj["chat_only"] = share.appForSlot(slot) == ShareManager::kChatOnlyApp;
         obj[QStringLiteral("needs_pin")] = false;
         obj[QStringLiteral("machine_name")] = deps.machineName ? deps.machineName() : QString();
         obj[QStringLiteral("state")] = stateName(share.state(slot));
@@ -640,6 +649,10 @@ void registerShareRoutes(HttpServer& server, ShareManager& share, const ShareRou
                 return;
             }
 
+            if (share.appForSlot(slot) == ShareManager::kChatOnlyApp) {
+                respond(HttpResponse::error(403, "This invitation is for chat only."));
+                return;
+            }
             // A rung past the first is this same browser walking its transport
             // chain: the rung it just gave up on may still count as streaming
             // until its worker notices, and the relaunch replaces it (the slot is

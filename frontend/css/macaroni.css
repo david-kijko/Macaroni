@@ -1,0 +1,346 @@
+@font-face {
+    font-family: Figtree;
+    src: url('/assets/fonts/figtree-latin.woff2') format('woff2');
+    font-weight: 300 900;
+    font-display: swap;
+}
+@font-face {
+    font-family: Caprasimo;
+    src: url('/assets/fonts/caprasimo-latin.woff2') format('woff2');
+    font-weight: 400;
+    font-display: swap;
+}
+:root {
+    --surface-0: #151311;
+    --surface-1: #1b1916;
+    --surface-2: #24201d;
+    --surface-3: #302a26;
+    --surface-4: #413831;
+    --surface-glass: rgb(27 25 22 / 96%);
+    --text-1: #f4eadc;
+    --text-2: #c2b6aa;
+    --text-3: #a99d91;
+    --accent-1: #e9955d;
+    --accent-strong: #ffb67e;
+    --accent-deep: #d5834e;
+    --accent-soft: #e9955d20;
+    --accent-ring: #e9955d80;
+    --neon-cyan: #e9955d;
+    --neon-magenta: #dfac87;
+    --cyan-soft: #e9955d18;
+    --border-1: #443d36;
+    --border-2: #66584b;
+    --font-ui: Figtree, system-ui, sans-serif;
+    --font-mono: ui-monospace, monospace;
+    --radius-sm: 6px;
+    --radius-md: 9px;
+    --radius-lg: 14px;
+    --app-bg: var(--surface-0);
+    --bg-grid: none;
+    --glow-cyan: none;
+    --glow-accent: none;
+}
+.app-header,
+.stream-header {
+    background: var(--surface-1);
+    border-bottom: 1px solid var(--border-1);
+    box-shadow: none;
+}
+.app-header h1,
+.stream-header .stream-brand-title,
+.macaroni-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font:
+        400 22px/1.1 Caprasimo,
+        Georgia,
+        serif;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--text-1);
+    text-shadow: none;
+}
+.app-header h1 img,
+.stream-brand-title img,
+.macaroni-brand img {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+}
+.player-card .macaroni-brand {
+    margin: 0 auto 12px;
+}
+.player-page .player-art {
+    display: none;
+}
+.btn,
+.btn-icon,
+.player-card,
+.share-board {
+    clip-path: none;
+    border-radius: var(--radius-md);
+}
+dialog.macaroni-room {
+    position: fixed;
+    inset: 0 0 0 auto;
+    margin: auto 12px auto auto;
+    padding: 0;
+    width: min(380px, calc(100vw - 24px));
+    height: min(650px, calc(100dvh - 40px));
+    max-width: none;
+    max-height: none;
+    border: 1px solid #51483e;
+    border-radius: 16px;
+    background: #1b1916;
+    box-shadow: 0 12px 40px #08070666;
+}
+dialog.macaroni-room::backdrop {
+    background: rgb(12 10 8 / 22%);
+}
+.macaroni-room iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+}
+.room-body {
+    box-sizing: border-box;
+    height: 100dvh;
+    margin: 0;
+    display: grid;
+    grid-template-rows: auto auto 1fr auto auto;
+    background: #1b1916;
+    color: #f4eadc;
+    font:
+        15px/1.45 Figtree,
+        system-ui,
+        sans-serif;
+    color-scheme: dark;
+}
+.room-body header,
+.room-body form div {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+.room-body header {
+    padding: 12px 14px;
+    border-bottom: 1px solid #443d36;
+}
+.room-body h1 {
+    margin: 0;
+    font:
+        400 21px Caprasimo,
+        Georgia,
+        serif;
+}
+.room-body button,
+.room-body input {
+    font: inherit;
+    border-radius: 9px;
+    padding: 8px 12px;
+}
+.room-body header button {
+    margin-left: auto;
+    padding: 3px 10px;
+    background: transparent;
+    color: inherit;
+    border: 1px solid #66584b;
+    cursor: pointer;
+    font-size: 20px;
+}
+.room-people,
+.room-status,
+.room-body form label {
+    font-size: 13px;
+    color: #c2b6aa;
+}
+.room-people,
+.room-status {
+    margin: 0;
+    padding: 8px 16px;
+}
+.room-body ol {
+    margin: 0;
+    padding: 4px 16px;
+    list-style: none;
+    overflow-y: auto;
+}
+.room-body li {
+    padding: 8px 0;
+    overflow-wrap: anywhere;
+}
+.room-body li p {
+    margin: 2px 0;
+    white-space: pre-wrap;
+}
+.room-body time {
+    margin-left: 8px;
+    font-size: 12px;
+    color: #c2b6aa;
+}
+.room-body form {
+    padding: 10px 14px 14px;
+    border-top: 1px solid #443d36;
+}
+.room-body form label {
+    display: block;
+    margin-bottom: 5px;
+}
+.room-body input {
+    min-width: 0;
+    flex: 1;
+    color: inherit;
+    background: #24201d;
+    border: 1px solid #66584b;
+}
+.room-body [type='submit'] {
+    border: 0;
+    background: #e9955d;
+    color: #21180f;
+    font-weight: 700;
+    cursor: pointer;
+}
+.room-body :focus-visible {
+    outline: 2px solid #e9955d;
+    outline-offset: 2px;
+}
+@media (max-width: 650px) {
+    dialog.macaroni-room {
+        inset: auto 0 0;
+        margin: 0;
+        width: 100%;
+        height: min(56dvh, 540px);
+        border-radius: 16px 16px 0 0;
+    }
+}
+.hands-invite {
+    box-sizing: border-box;
+    margin: auto;
+    padding: 0;
+    width: min(440px, 95vw);
+    max-height: 85dvh;
+    border: 1px solid var(--border-2);
+    border-radius: 16px;
+    background: var(--surface-1);
+    color: var(--text-1);
+    font: 15px/1.45 var(--font-ui);
+    color-scheme: dark;
+}
+.hands-invite::backdrop {
+    background: #110f0dbb;
+}
+.hands-invite header,
+.invite-actions,
+.hands-invite li {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+.hands-invite header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border-1);
+}
+.hands-invite h2 {
+    margin: 0;
+    font:
+        400 21px Caprasimo,
+        Georgia,
+        serif;
+}
+.hands-invite header button {
+    margin-left: auto;
+    background: transparent;
+    border: 0;
+    color: inherit;
+    font-size: 24px;
+    cursor: pointer;
+}
+.invite-content {
+    padding: 16px 18px;
+}
+.invite-content [hidden] {
+    display: none !important;
+}
+.hands-invite label,
+.hands-join label {
+    display: block;
+    font-weight: 600;
+}
+.hands-invite input:not([type='checkbox']),
+.hands-invite select,
+.hands-join input {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 9px;
+    margin: 4px 0 10px;
+    border: 1px solid var(--border-2);
+    border-radius: 8px;
+    background: var(--surface-2);
+    color: var(--text-1);
+    font: inherit;
+}
+.invite-help {
+    color: var(--text-2);
+    margin: 0 0 14px;
+}
+.invite-actions,
+.hands-invite .control-gate {
+    margin-bottom: 14px;
+}
+.hands-invite ul {
+    padding: 0;
+}
+.hands-invite li {
+    padding: 8px 0;
+    overflow-wrap: anywhere;
+}
+.hands-invite li span {
+    min-width: 0;
+}
+.hands-invite details {
+    margin-left: auto;
+}
+.hands-invite summary {
+    cursor: pointer;
+    color: var(--accent-1);
+}
+.hands-invite details button {
+    display: block;
+    margin: 4px 0;
+}
+.hands-invite h3 {
+    font-size: 15px;
+    margin: 14px 0 0;
+}
+.hands-invite p[role='status']:empty {
+    display: none;
+}
+.room-body {
+    grid-template-rows: auto auto auto minmax(0, 1fr) auto auto;
+}
+.room-control {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 0 14px;
+    color: #c2b6aa;
+    font-size: 12px;
+}
+.room-control[hidden],
+.room-control [hidden] {
+    display: none;
+}
+.room-control button,
+.room-control select {
+    background: #302a26;
+    border: 1px solid #66584b;
+    color: #f4eadc;
+    border-radius: 8px;
+    padding: 4px 8px;
+}
+.room-body:has(.room-control[hidden]) {
+    grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+}

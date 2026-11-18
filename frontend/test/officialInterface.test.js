@@ -178,13 +178,13 @@ describe('the bytes a digest is taken over', () => {
 
     it('cannot be had for a value no genuine machine writes', () => {
         const markup = servedIndex().replace(
-            'content="MoonlightWeb"',
+            'content="Macaroni"',
             'content="x"><script src="/js/x.js"></script><meta content="',
         );
         // The pattern stops at the first quote; what follows is a changed page.
         const plain = sha(canonicalBytes('/index.html', bytesOf(servedIndex())));
         expect(sha(canonicalBytes('/index.html', bytesOf(markup)))).not.toBe(plain);
-        const delimiters = servedIndex().replace('content="MoonlightWeb"', 'content="<b>"');
+        const delimiters = servedIndex().replace('content="Macaroni"', 'content="<b>"');
         expect(() => canonicalBytes('/index.html', bytesOf(delimiters))).toThrow();
         for (const href of ['https://evil.example/i.png', '//evil.example/i.png', 'javascript:x']) {
             const icon = servedIndex().replace('href="/assets/icon-180.png"', `href="${href}"`);
@@ -198,7 +198,7 @@ describe('the bytes a digest is taken over', () => {
     });
 
     it('give an empty digest, which matches nothing, where they cannot be had', async () => {
-        const bad = servedIndex().replace('content="MoonlightWeb"', 'content="<b>"');
+        const bad = servedIndex().replace('content="Macaroni"', 'content="<b>"');
         expect(await officialDigest('/index.html', bytesOf(bad))).toBe('');
         expect(await officialDigest('/js/a.js', bytesOf('x'))).toBe(sha(bytesOf('x')));
     });

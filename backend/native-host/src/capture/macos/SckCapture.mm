@@ -440,10 +440,8 @@ bool SckCapture::start(std::string& error)
                 config.capturesAudio = YES;
                 config.sampleRate = 48000;
                 config.channelCount = 2;
-                // Our own process makes no sound; excluding it would only
-                // hide a browser tab opened ON the Mac being streamed, which
-                // is a feedback loop the user can hear and close themselves.
-                config.excludesCurrentProcessAudio = NO;
+                // Keep the decoded browser microphone out of the system playback track.
+                config.excludesCurrentProcessAudio = YES;
                 m_AudioActive = true;
             } else {
                 log::warning("[native] audio: ScreenCaptureKit captures sound from macOS 13 on — "

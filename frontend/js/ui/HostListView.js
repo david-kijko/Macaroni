@@ -32,7 +32,7 @@ import { Host } from '../models/Host.js';
 import { App } from '../models/App.js';
 import { PairDialog } from './PairDialog.js';
 import { BackendDialog } from './BackendDialog.js';
-import { ShareBoard } from './ShareBoard.js';
+import { HandsInvite } from './HandsInvite.js';
 import { Toast } from './Toast.js';
 import { t } from '../i18n/i18n.js';
 import { Icons } from './icons.js';
@@ -1129,7 +1129,9 @@ export class HostListView {
                                 // Gated on the declared lobby capability, not
                                 // the product name — a co-op host manages its
                                 // own players in its own streamed UI.
-                                !booth && host.isAvailable && host.supportsLobbies !== true
+                                !booth &&
+                                (host.isAvailable || host.backendType === 'native') &&
+                                host.supportsLobbies !== true
                                     ? `<button class="host-menu-item btn-share" data-uuid="${host.uuid}">${t('sharing.share')}</button>`
                                     : ''
                             }
@@ -1903,7 +1905,7 @@ export class HostListView {
      * spend their PIN is what starts it.
      */
     async _openShareBoard(host) {
-        const board = new ShareBoard({
+        const board = new HandsInvite({
             hostUuid: host.uuid,
             hostName: host.displayName || host.name,
             streaming: false,

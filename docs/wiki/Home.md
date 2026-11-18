@@ -1,5 +1,8 @@
 # MoonlightWeb — Technical Wiki
 
+The [Macaroni guide](../../README.md) covers the Hands viewer, Mac audio, room invitations and control permissions. These chapters document the underlying MoonlightWeb engine.
+
+
 > **Stream your PC games from any browser.** MoonlightWeb is a C++/Qt server installed on the gaming PC: it **captures and encodes that machine itself** and relays video/audio/input to any modern browser over WebRTC. It is also a full GameStream client, so [Sunshine](https://github.com/LizardByte/Sunshine), Wolf and MultiSeat hosts are paired and streamed from the same page. Nothing to install on the client — just a URL.
 
 This wiki is the canonical technical documentation for contributors and for AI coding agents. It only covers what is committed to this repository. Every chapter is self-contained, cross-linked, and written so that both a human developer preparing a pull request and an LLM ingesting the repo can build an accurate mental model of the system.

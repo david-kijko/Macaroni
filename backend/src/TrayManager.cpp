@@ -52,9 +52,9 @@ QIcon TrayManager::loadAppIcon()
     // instance cannot be taken for the production one in the tray; the
     // production icon stays as a last resort rather than no icon at all.
     const QStringList roots = {
+        QCoreApplication::applicationDirPath() + QStringLiteral("/../Resources/frontend/"),
         QStringLiteral(FRONTEND_DIR),
         QCoreApplication::applicationDirPath() + QStringLiteral("/frontend/"),
-        QCoreApplication::applicationDirPath() + QStringLiteral("/../Resources/frontend/"),
     };
     const QStringList names = {mw::edition::iconAsset(QStringLiteral("icon-512.png")),
                                mw::edition::iconAsset(QStringLiteral("favicon.ico")),

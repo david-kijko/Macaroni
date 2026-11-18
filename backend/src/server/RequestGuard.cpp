@@ -360,7 +360,8 @@ bool lockedByNoAdmin(const QString& method, const QString& path, bool shareAllow
     }
     if (area == QLatin1String("share")) {
         if (shareAllowed) return false;
-        if (seg.size() >= 3 && seg[2] == QLatin1String("slots")) return true;
+        if (seg.size() >= 3 && (seg[2] == QLatin1String("slots") || seg[2] == QLatin1String("room"))) return true;
+        if (seg.size() == 4 && seg[2] == QLatin1String("player") && seg[3] == QLatin1String("claim")) return true;
         return seg.size() == 4 && seg[2] == QLatin1String("player") &&
                seg[3] == QLatin1String("pin");
     }

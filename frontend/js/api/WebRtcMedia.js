@@ -1,3 +1,4 @@
+import { forwardedCandidate } from './MacvmForward.js';
 /*
  * MoonlightWeb — browser-based Sunshine/GameStream client.
  * Copyright (C) 2026 Bruno Martin <brunoocto@gmail.com>
@@ -911,7 +912,7 @@ export class WebRtcMedia {
 
         try {
             const iceCandidate = new RTCIceCandidate({
-                candidate: candidate,
+                candidate: forwardedCandidate(candidate),
                 sdpMid: mid,
             });
             await this.pc.addIceCandidate(iceCandidate);

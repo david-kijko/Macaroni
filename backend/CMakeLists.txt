@@ -321,6 +321,8 @@ add_executable(mw-server
     src/server/HostAppImage.cpp
     src/server/HostAppLauncher.cpp
     src/server/LauncherDetect.cpp
+    src/server/routes/HandsSharing.cpp
+    src/server/routes/RoomChat.cpp
     src/server/routes/ShareRoutes.cpp
     src/server/routes/SystemRoutes.cpp
     src/server/routes/LogRoutes.cpp
@@ -512,10 +514,17 @@ endif()
 # Windows plays it into a virtual cable through WASAPI (no dependency); Linux
 # into a PipeWire virtual source, libpipewire opened with dlopen — headers only
 # here, as for the native host, so a machine without it still starts. Without
-# the headers the build carries the stub, which says why.
+# the headers the build carries the stub, which says why. macOS plays it into
+# "BlackHole 2ch" through CoreAudio's HAL output unit: system frameworks only,
+# and plain C++ against their C API, so no Objective-C and no ARC.
 if(WIN32)
     target_sources(mw-server PRIVATE src/streaming/MicOutputWindows.cpp)
-elseif(UNIX AND NOT APPLE)
+elseif(APPLE)
+    target_sources(mw-server PRIVATE src/streaming/MicOutputMac.cpp)
+    # AudioToolbox holds the audio unit API, CoreAudio the device list.
+    target_link_libraries(mw-server PRIVATE
+        "-framework AudioToolbox" "-framework CoreAudio" "-framework CoreFoundation")
+elseif(UNIX)
     find_package(PkgConfig QUIET)
     if(PkgConfig_FOUND)
         pkg_check_modules(MW_MIC_PIPEWIRE QUIET libpipewire-0.3)

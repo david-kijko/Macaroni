@@ -66,6 +66,8 @@ public:
 
     /// Player slots map 1:1 onto stream worker slots: 0 and 1 belong to the
     /// owner (primary + standby), 2..4 to the players.
+    // A PIN-bound room with no stream target.
+    static constexpr int kChatOnlyApp = -2;
     static constexpr int kFirstSlot = 2;
     static constexpr int kSlotCount = 3;
     static constexpr int kLastSlot = kFirstSlot + kSlotCount - 1;
@@ -190,7 +192,7 @@ public:
     /// lifetimes (0 = unlimited). Returns false for a slot outside the player
     /// range, an empty @p hostUuid (nothing to bind to), or an unlisted lifetime.
     bool activate(int slot, const QString& hostUuid, int appId, qint64 ttlSecs, QString& outToken,
-                  QString& outPin, SlotStatus& outStatus);
+                  QString& outPin, SlotStatus& outStatus, qint64 roomDeadline = 0);
 
     /// The raw link token and PIN of a live activation, so the owner reopening
     /// the popin can read what they already sent out. False when the slot is
@@ -254,6 +256,9 @@ public:
     /// when Off. Handed out with the link and PIN, so the board knows which
     /// opening they belong to.
     QString opening(int slot);
+    bool isRoomGuest(int slot);
+    bool roomGuestControls(const QString& hostUuid) const;
+    static QString inviteSecret() { return randomToken(); }
 
     /// Players currently streaming — the number shown as "Share (n)".
     int streamingCount();
@@ -339,6 +344,8 @@ public:
 signals:
     /// A slot's observable state changed — the owner's board should refresh.
     void slotChanged(int slot);
+    void sharingEnded(const QString& hostUuid);
+    void roomControllerChanged(const QString& hostUuid);
 
     /// A live player stream must be torn down. Carries EndReason as an int so
     /// the signal crosses to main.cpp without dragging the enum along.
@@ -368,6 +375,8 @@ private:
         /// from activatedAt + ttlSecs, because setTtl() moves it to a value
         /// that is not activatedAt plus any offered lifetime (see setTtl).
         qint64 expiresAtSecs = 0;
+        QString roomName;
+        bool roomGuest = false;
         qint64 activatedAt = 0;
         int pinFailures = 0;
         bool streaming = false; ///< runtime only, never persisted

@@ -297,7 +297,8 @@ static void writeAdminShortcut(const QString& url)
     // Expose the resolved URL to the installer (post-install "open admin page"
     // action) regardless of the shortcut below.
     Provisioning::setInfo(QStringLiteral("admin_url"), url);
-    if (!qEnvironmentVariableIsEmpty("MW_SERVICE")) return;
+    if (!qEnvironmentVariableIsEmpty("MW_SERVICE") ||
+        !qEnvironmentVariableIsEmpty("MW_MANAGED_DESKTOP_SHORTCUT")) return;
     const QString desktop = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
     if (desktop.isEmpty()) return;
 #if defined(Q_OS_LINUX)
@@ -2731,6 +2732,16 @@ int main(int argc, char* argv[])
                              worker->setInputPolicy(gamepad, keyboardMouse, hid);
                      });
 
+    QObject::connect(&shareManager, &ShareManager::roomControllerChanged, qApp,
+                     [&shareManager, &g_Pool](const QString& hostUuid) {
+                         const bool ownerControls = !shareManager.roomGuestControls(hostUuid);
+                         for (int i = 0; i < g_Pool.size(); ++i) {
+                             if (ShareManager::isPlayerSlot(i) || g_Pool.at(i).hostUuid != hostUuid) continue;
+                             if (auto* worker = g_Pool.workerAs<StreamWorkerHost>(i))
+                                 worker->setInputPolicy(true, ownerControls, true);
+                         }
+                     });
+
     // Suspend host polling whenever a relay is active, so we stop hammering
     // Sunshine's HTTP server while a stream is running (avoids wedging it and
     // making the host appear offline to native clients).
@@ -3167,7 +3178,7 @@ int main(int argc, char* argv[])
     });
 
     // Phase 5: Start streaming — launch app + RTSP handshake
-    server.router()->postAsync("/api/hosts/:id/start", [&computerManager, signalingPort,
+    server.router()->postAsync("/api/hosts/:id/start", [&computerManager, &shareManager, signalingPort,
                                                         &g_ActiveRelay, &g_ActiveStreamRelay,
                                                         &g_ActiveMediaTrackRelay, &g_ActiveSession,
                                                         &g_ActiveRelayRoot, &g_ActiveClientUniqueId,
@@ -4719,7 +4730,10 @@ int main(int argc, char* argv[])
                                        NativeHostBackend::usesVirtualDisplay(appId);
             auto startWorker = [worker, respond, standby, reqSlot, appId, &g_Pool,
                                 &g_LastStandbyStartMs, hostUuidCopy, uid, sessionToken,
-                                virtualStream](QJsonObject cfg) {
+                                virtualStream, &shareManager](QJsonObject cfg) {
+                if (shareManager.roomGuestControls(hostUuidCopy)) {
+                    cfg["inputPolicy"] = QJsonObject{{"gamepad",true},{"keyboardMouse",false},{"hid",true}};
+                }
                 // On our virtual display: the display it took the primary role
                 // from, which turning it on (below) has just recorded in this
                 // settings file — a SYSTEM worker does not read it.
@@ -5617,7 +5631,9 @@ int main(int argc, char* argv[])
     };
     shareDeps.hostAppExists = [&computerManager](const QString& hostUuid, int appId) {
         NvComputer* host = computerManager.getHost(hostUuid);
-        if (!host || appId <= 0) return false;
+        if (!host) return false;
+        if (appId == ShareManager::kChatOnlyApp) return true;
+        if (appId <= 0) return false;
         // An empty list means the host has not been polled yet, not that it has
         // no apps — do not refuse an invitation over a cache that never filled.
         if (host->appList.isEmpty()) return true;

@@ -186,7 +186,10 @@ void ShareManager::clearActivation(int slot, EndReason reason, bool notify)
     if (!s || !s->activation.live()) return;
 
     const bool wasStreaming = s->activation.streaming;
+    const auto controlledHost = s->activation.roomGuest && s->activation.permissions.keyboardMouse
+        ? s->activation.hostUuid : QString();
     s->activation = Activation{};
+    if (!controlledHost.isEmpty()) emit roomControllerChanged(controlledHost);
 
     if (notify) {
         if (wasStreaming) emit playerMustDisconnect(slot, static_cast<int>(reason));
@@ -205,7 +208,7 @@ QList<ShareManager::SlotStatus> ShareManager::status()
         const Slot* s = &m_Slots[slot];
         SlotStatus st;
         st.slot = slot;
-        st.name = s->name;
+        st.name = name(slot);
         if (!s->activation.live()) {
             st.state = State::Off;
             // Off rows still show a choice: the one this player had last time.
@@ -230,8 +233,24 @@ QList<ShareManager::SlotStatus> ShareManager::status()
     return out;
 }
 
+bool ShareManager::roomGuestControls(const QString& hostUuid) const
+{
+    for (const auto& slot : m_Slots) {
+        const auto& a = slot.activation;
+        if (a.roomGuest && a.hostUuid == hostUuid && a.permissions.keyboardMouse &&
+            a.expiresAtSecs > QDateTime::currentSecsSinceEpoch()) return true;
+    }
+    return false;
+}
+
+bool ShareManager::isRoomGuest(int slot)
+{
+    const Slot* s = slotFor(slot);
+    return s && s->activation.live() && s->activation.roomGuest;
+}
+
 bool ShareManager::activate(int slot, const QString& hostUuid, int appId, qint64 ttlSecs,
-                            QString& outToken, QString& outPin, SlotStatus& outStatus)
+                            QString& outToken, QString& outPin, SlotStatus& outStatus, qint64 roomDeadline)
 {
     if (!isPlayerSlot(slot)) return false;
     // A share is an invitation onto a *specific* host. With no host there is
@@ -261,6 +280,11 @@ bool ShareManager::activate(int slot, const QString& hostUuid, int appId, qint64
     act.ttlSecs = ttlSecs;
     act.activatedAt = QDateTime::currentSecsSinceEpoch();
     act.expiresAtSecs = ttlSecs > 0 ? act.activatedAt + ttlSecs : 0;
+    if (roomDeadline) {
+        act.roomGuest = true;
+        act.expiresAtSecs = qMin(act.expiresAtSecs, roomDeadline);
+        act.permissions = {};
+    }
     act.hostUuid = hostUuid;
     act.appId = appId;
     s->activation = act;
@@ -320,7 +344,7 @@ bool ShareManager::setPermissions(int slot, const Permissions& perms)
     if (s->activation.permissions == perms) return true;
 
     s->activation.permissions = perms;
-    s->lastPermissions = perms; // remembered for the next opening
+    if (!s->activation.roomGuest) s->lastPermissions = perms;
     save();
 
     Logger::info(
@@ -329,6 +353,7 @@ bool ShareManager::setPermissions(int slot, const Permissions& perms)
     // in the UI before it takes effect on the host is a lie for as long as the
     // round trip lasts.
     emit permissionsChanged(slot, perms.gamepad, perms.keyboardMouse, perms.hid);
+    if (s->activation.roomGuest) emit roomControllerChanged(s->activation.hostUuid);
     emit slotChanged(slot);
     return true;
 }
@@ -369,6 +394,7 @@ bool ShareManager::setName(int slot, const QString& name)
 {
     Slot* s = slotFor(slot);
     if (!s) return false;
+    if (s->activation.roomGuest) { s->activation.roomName = name; emit slotChanged(slot); return true; }
     const QString clean = sanitizeName(name);
     if (s->name == clean) return true;
     s->name = clean;
@@ -407,7 +433,7 @@ bool ShareManager::setLinkAddress(const QString& hostUuid, const QString& id)
 QString ShareManager::name(int slot)
 {
     Slot* s = slotFor(slot);
-    return s ? s->name : QString();
+    return s ? (s->activation.roomGuest ? s->activation.roomName : s->name) : QString();
 }
 
 bool ShareManager::deactivate(int slot, EndReason reason)
@@ -425,6 +451,7 @@ bool ShareManager::deactivate(int slot, EndReason reason)
 
 void ShareManager::deactivateAll(EndReason reason)
 {
+    emit sharingEnded(QString());
     bool any = false;
     for (int slot = kFirstSlot; slot <= kLastSlot; ++slot) {
         if (!m_Slots[slot].activation.live()) continue;
@@ -441,6 +468,7 @@ void ShareManager::deactivateAll(EndReason reason)
 void ShareManager::deactivateForHost(const QString& hostUuid, EndReason reason)
 {
     if (hostUuid.isEmpty()) return;
+    emit sharingEnded(hostUuid);
     bool any = false;
     for (int slot = kFirstSlot; slot <= kLastSlot; ++slot) {
         const Activation& act = m_Slots[slot].activation;
@@ -746,7 +774,7 @@ void ShareManager::save()
         obj[QStringLiteral("name")] = s.name;
         obj[QStringLiteral("lastPermissions")] = s.lastPermissions.toJson();
         obj[QStringLiteral("lastTtlSecs")] = s.lastTtlSecs;
-        if (s.activation.live()) {
+        if (s.activation.live() && !s.activation.roomGuest) {
             QJsonObject act;
             act[QStringLiteral("id")] = s.activation.id;
             act[QStringLiteral("tokenHash")] = s.activation.tokenHash;

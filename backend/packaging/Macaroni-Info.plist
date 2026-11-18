@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+    <key>CFBundleIdentifier</key><string>nl.kijko.macvm.stream</string>
+    <key>CFBundleName</key><string>Macaroni</string>
+    <key>CFBundleDisplayName</key><string>Macaroni</string>
+    <key>CFBundleExecutable</key><string>Macaroni</string>
+    <key>CFBundleIconFile</key><string>Macaroni</string>
+    <key>CFBundlePackageType</key><string>APPL</string>
+    <key>CFBundleShortVersionString</key><string>0.4.3</string>
+    <key>CFBundleVersion</key><string>0.4.3</string>
+    <key>NSHighResolutionCapable</key><true/>
+    <key>NSLocalNetworkUsageDescription</key><string>Macaroni connects viewers to this Mac.</string>
+    <key>LSEnvironment</key><dict><key>MW_MANAGED_DESKTOP_SHORTCUT</key><string>1</string></dict>
+</dict></plist>

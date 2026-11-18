@@ -6,7 +6,7 @@
             name="viewport"
             content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
         />
-        <title>MoonlightWeb</title>
+        <title>Macaroni</title>
         <!-- Somebody's own machine, never a page to be found: whether it is
              reached on its LAN address or on a public name, nothing here is for a
              search engine or a crawler. Only the marketing site is indexed. -->
@@ -15,9 +15,9 @@
          browser chrome on iOS, which blocks the Fullscreen API on canvas). -->
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="MoonlightWeb" />
+        <meta name="apple-mobile-web-app-title" content="Macaroni" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="theme-color" content="#05080b" />
+        <meta name="theme-color" content="#1b1916" />
         <!-- The first file the page asks for, and owing nothing to the module
              graph: if a file of it never arrives, it reloads once, then says so
              (js/bootWatch.js). First, because a browser opens at most six
@@ -54,12 +54,13 @@
         <link rel="stylesheet" href="/css/views/gamepad.css?v=__MW_VERSION__" />
         <link rel="stylesheet" href="/css/stream.css?v=__MW_VERSION__" />
         <link rel="stylesheet" href="/css/securing.css?v=__MW_VERSION__" />
+        <link rel="stylesheet" href="/css/macaroni.css?v=__MW_VERSION__" />
         <link rel="icon" href="/assets/favicon.ico" type="image/x-icon" />
     </head>
     <body>
         <div id="app">
             <header class="app-header">
-                <h1>MoonlightWeb</h1>
+                <h1><img src="/assets/logo.png" alt="" />Macaroni</h1>
                 <!-- The machine this page is talking to. Empty and hidden until
                      the instance answers with its name (InstanceMenu), so the
                      header never flashes a placeholder or a stale one. It turns
@@ -148,7 +149,7 @@
             </main>
 
             <footer class="app-footer">
-                <span data-i18n="footer.tagline">MoonlightWeb &mdash; Game Streaming Client</span>
+                <span>Macaroni by Hands</span>
             </footer>
         </div>
 

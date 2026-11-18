@@ -582,6 +582,29 @@ void test_persistence_survives_a_restart()
     delete again;
 }
 
+void test_room_guest_keeps_deadline_and_leaves_no_reusable_grant()
+{
+    auto* mgr = freshManager();
+    QString token, pin;
+    ShareManager::SlotStatus st;
+    const qint64 deadline = QDateTime::currentSecsSinceEpoch() + 120;
+    CHECK(mgr->activate(kSlot, kHost, kApp, 4 * 3600, token, pin, st, deadline));
+    CHECK_EQ(st.expiresAt, deadline);
+    CHECK(mgr->isRoomGuest(kSlot));
+    CHECK(!mgr->permissions(kSlot).keyboardMouse);
+    ShareManager::Permissions p;
+    p.keyboardMouse = true;
+    CHECK(mgr->setPermissions(kSlot, p));
+    CHECK(mgr->roomGuestControls(kHost));
+    CHECK(mgr->setName(kSlot, QStringLiteral("Avery")));
+    delete mgr;
+    ShareManager restarted;
+    CHECK(!restarted.tokenIsLive(token));
+    CHECK(!restarted.roomGuestControls(kHost));
+    CHECK(!restarted.permissions(kSlot).keyboardMouse);
+    CHECK(restarted.name(kSlot).isEmpty());
+}
+
 void test_clear_secrets_are_memory_only()
 {
     SECTION("share: the clear link and PIN never touch the disk");
@@ -805,6 +828,7 @@ void run_share_manager_tests()
     test_revoking_a_live_stream_asks_for_a_disconnect();
     test_slots_are_independent();
     test_persistence_survives_a_restart();
+    test_room_guest_keeps_deadline_and_leaves_no_reusable_grant();
     test_clear_secrets_are_memory_only();
     test_share_is_bound_to_its_host();
     test_guests_picture_height();

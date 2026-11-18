@@ -1,3 +1,4 @@
+import { isMacvmForward } from './api/MacvmForward.js';
 /*
  * MoonlightWeb — browser-based Sunshine/GameStream client.
  * Copyright (C) 2026 Bruno Martin <brunoocto@gmail.com>
@@ -530,6 +531,12 @@ export const MoonlightApp = {
         // that address is spent naming this machine, and the token travels in
         // the fragment so that server never sees it. The page it lands on is
         // /p, and the token is beside it.
+        const invite = new URLSearchParams(location.hash.slice(1)).get('invite');
+        if (invite && window.location.pathname === '/p') {
+            const { guestLanding } = await import('./ui/HandsInvite.js');
+            guestLanding(document.getElementById('app'), invite);
+            return;
+        }
         const fromPath = window.location.pathname.startsWith('/p/')
             ? decodeURIComponent(window.location.pathname.slice('/p/'.length))
             : '';
@@ -899,7 +906,7 @@ export const MoonlightApp = {
         // loopback entry points open over http:// to dodge the cert warning /
         // Firefox blank page, so when we're on http:// show a gate that switches
         // to HTTPS instead of an unusable host list.
-        if (window.location.protocol === 'http:') {
+        if (window.location.protocol === 'http:' && !isMacvmForward()) {
             this._renderInsecureGate(main);
             return;
         }

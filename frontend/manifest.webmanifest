@@ -1,14 +1,14 @@
 {
-    "name": "MoonlightWeb",
-    "short_name": "MoonlightWeb",
-    "description": "Stream your gaming PC to any browser",
+    "name": "Macaroni",
+    "short_name": "Macaroni",
+    "description": "Share a Mac desktop with browser audio, microphone and room chat",
     "start_url": "/",
     "scope": "/",
     "display": "fullscreen",
     "display_override": ["fullscreen", "standalone"],
     "orientation": "landscape",
-    "background_color": "#05080b",
-    "theme_color": "#05080b",
+    "background_color": "#1b1916",
+    "theme_color": "#1b1916",
     "icons": [
         {
             "src": "assets/icon-192.png",

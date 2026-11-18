@@ -158,6 +158,7 @@ import { VdGpuApartWatch, takeVdGpuApartNotice } from '../util/vdGpuApartNotice.
 import { escapeHtml } from '../util/escapeHtml.js';
 import { shortcutsGridHtml, shortcutsTitle } from '../util/shortcutsHelp.js';
 import { Icons } from './icons.js';
+import { openRoom } from './RoomChat.js';
 import { ShareMenu } from './ShareMenu.js';
 import { GuestPresence } from './SharePresence.js';
 import { openSupportPage, showSupportButton } from '../util/supportNudge.js';
@@ -2260,7 +2261,7 @@ export class StreamView {
         el.innerHTML = `
             <div class="stream-header">
                 <div class="stream-brand" aria-hidden="true">
-                    <span class="stream-brand-title">MoonlightWeb</span>
+                    <span class="stream-brand-title"><img src="/assets/logo.png" alt="">Macaroni</span>
                     ${
                         // The shell's own classes, and its own nesting: the name
                         // sits inside .instance-menu because that is where its
@@ -2288,6 +2289,7 @@ export class StreamView {
                                    )}</button>`
                         : ''
                 }
+                <button class="btn btn-secondary stream-room-chat" type="button">Room chat</button>
                 <button class="btn stream-quit-btn" id="btn-stream-quit">${
                     this._playerMode
                         ? t('player.leave')
@@ -2333,6 +2335,9 @@ export class StreamView {
         // Whole-surface input element: touch events are captured on the full
         // overlay (trackpad model), not just the canvas/video rectangle.
         this.streamEl = el;
+        el.querySelector('.stream-room-chat').addEventListener('click', () =>
+            openRoom(this._playerMode ? { token: this._shareToken } : { host: this.host.uuid }),
+        );
 
         this.canvasArea = /** @type {HTMLElement} */ (el.querySelector('.stream-canvas-area'));
         this.canvas = /** @type {HTMLCanvasElement} */ (el.querySelector('#stream-canvas'));

@@ -27,7 +27,7 @@
 import { BackendClient } from '../api/BackendClient.js';
 import { t } from '../i18n/i18n.js';
 import { escapeHtml } from '../util/escapeHtml.js';
-import { ShareBoard } from './ShareBoard.js';
+import { HandsInvite } from './HandsInvite.js';
 import {
     announceChanges,
     ownerSidePeople,
@@ -124,7 +124,7 @@ export class ShareMenu {
 
     async _openBoard() {
         if (this._board) return;
-        const board = new ShareBoard({
+        const board = new HandsInvite({
             hostUuid: this.host?.uuid,
             hostName: this.host?.name,
             streaming: true, // guests join what is already on screen

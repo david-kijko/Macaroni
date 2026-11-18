@@ -27,7 +27,7 @@ import { BackendClient } from '../api/BackendClient.js';
 import { t } from '../i18n/i18n.js';
 import { escapeHtml } from '../util/escapeHtml.js';
 import { IS_MOBILE_OR_TABLET, IS_TOUCH_DEVICE, hevcClientDecodes } from '../util/BrowserDetect.js';
-import { PlayerArt } from './PlayerArt.js';
+import { openRoom } from './RoomChat.js';
 import { noticeHtml } from './PrivacyNotice.js';
 import {
     GamepadRemapDialog,
@@ -134,13 +134,12 @@ export class PlayerJoinView {
 
     // ── Screens ─────────────────────────────────────────────────────────────
 
-    _shell(inner, artKey) {
+    _shell(inner, _artKey) {
         this._stopPadWatch();
         this._stopEnterKey();
         this.container.innerHTML = `
             <div class="player-page">
-                ${artKey ? `<div class="player-art">${PlayerArt[artKey]}</div>` : ''}
-                <div class="player-card">${inner}</div>
+                <div class="player-card"><div class="macaroni-brand"><img src="/assets/logo.png" alt="">Macaroni</div>${inner}</div>
                 <button class="player-privacy-btn" type="button" id="player-privacy-btn"
                         aria-expanded="false">${escapeHtml(t('stats.cookiesButton'))}</button>
             </div>
@@ -379,6 +378,18 @@ export class PlayerJoinView {
     }
 
     _renderJoin() {
+        if (this.info.chat_only) {
+            this._shell(
+                '<h1>Chat invitation</h1><button class="btn btn-open player-chat" type="button">Join room chat</button>',
+            );
+            const join = this.container.querySelector('.player-chat');
+            join.addEventListener('click', () => openRoom({ token: this.token }));
+            if (!this._chatOpened) {
+                this._chatOpened = true;
+                join.click();
+            }
+            return;
+        }
         const machine = this.info.machine_name || t('player.thisPc');
         const busy = this.info.state === 'streaming';
         // Nothing up on the bound host is not a dead end: the guest's arrival is
@@ -435,6 +446,7 @@ export class PlayerJoinView {
                 </button>
             `
             }
+            <button type="button" class="btn btn-secondary player-chat">Room chat</button>
             <p class="player-error player-join-error" hidden></p>
             ${
                 // Only worth offering while the guest is waiting on someone
@@ -446,6 +458,12 @@ export class PlayerJoinView {
             }
         `);
 
+        const chat = this.container.querySelector('.player-chat');
+        chat.addEventListener('click', () => openRoom({ token: this.token }));
+        if (!this._chatOpened && new URLSearchParams(location.search).get('room') === 'chat') {
+            this._chatOpened = true;
+            chat.click();
+        }
         this.container.querySelectorAll('.player-quality-btn').forEach((b) => {
             b.addEventListener('click', () => {
                 this._height = Number(/** @type {HTMLElement} */ (b).dataset.height);
